@@ -32,10 +32,6 @@ The enzyme transport and reaction scheme tracks six species spatially resolved a
 
 Fits the 8-parameter PDE model to the Shi et al. dataset using weighted nonlinear least squares (`scipy.optimize.least\_squares`, trust-region reflective method). Parameters are estimated in log-space to enforce positivity. Outputs R² and reduced chi-squared diagnostics, residual tables as `.xlsx`, and publication-quality fit plots at 600 DPI.
 
-**Observables fitted:**
-
-* Weight loss (WL): spatial mean of polymer solid (C + A), normalised by initial mass
-* Degree of crystallinity (Xc): spatial mean of C / (C + A)
 
 ### `thickness.py`
 
