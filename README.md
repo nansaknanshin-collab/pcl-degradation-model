@@ -59,7 +59,7 @@ Standalone publication figure plotting the total-order Sobol index of De0 across
 | kconv     | Crystalline-to-amorphous conversion rate | h⁻¹       |
 | kdegC     | Crystalline complex degradation rate     | h⁻¹       |
 | kdegA     | Amorphous complex degradation rate       | h⁻¹       |
-| De0       | Reference enzyme diffusion coefficient   | mm² h⁻¹   |
+| De0       | Reference enzyme diffusion coefficient   | mm h⁻¹   |
 
 **Fixed model constants:**  
 - Film half-thickness: L = 0.25 mm (0.5 mm full film, Shi et al.)  
