@@ -33,6 +33,7 @@ The enzyme transport and reaction scheme tracks six species spatially resolved a
 ### `Model_estimation.py`
 Fits the 8-parameter PDE model to the Shi et al. dataset using weighted nonlinear least squares (`scipy.optimize.least_squares`, trust-region reflective method). Parameters are estimated in log-space to enforce positivity. Outputs R² and reduced chi-squared diagnostics, residual tables as `.xlsx`, and publication-quality fit plots at 600 DPI.
 
+**Observables fitted:**
 
 ### `thickness analysis.py`
 Parametric sweep over five film half-thicknesses (L = 0.1, 0.25, 0.5, 3.0, 4.0 mm) using the calibrated parameter set from `Model_estimation.py`. Computes WL and Xc trajectories for each thickness, reports diffusion time constants (τ = L² / De0), and exports summary plots and an Excel workbook.
@@ -124,11 +125,21 @@ All outputs are saved to the system Downloads folder (auto-detected on Windows a
 
 ## Reference Data
 
-Experimental data (weight loss and DSC crystallinity) are from:
+Experimental data (weight loss and crystallinity) are embedded directly in the scripts as numeric arrays and are from:
 
 > Shi, K., Jing, J., Song, L., Su, T., and Wang, Z. (2020). Enzymatic hydrolysis of polyester: Degradation of poly(ε-caprolactone) by *Candida antarctica* lipase and *Fusarium solani* cutinase. *International Journal of Biological Macromolecules*, 144, 183–189. https://doi.org/10.1016/j.ijbiomac.2019.12.105
 
-Data are embedded directly in the scripts as numeric arrays.
+---
+
+## References
+
+The porosity-dependent diffusion formulation (α_E parameter) and polymer degradation model structure follow:
+
+> Wang, Y., Pan, J., Han, X., Sinka, C., and Ding, L. (2008). A phenomenological model for the degradation of biodegradable polymers. *Biomaterials*, 29, 3393–3401. https://doi.org/10.1016/j.biomaterials.2008.04.042
+
+The DE-MCz MCMC algorithm implemented in `Uncertainty analysis.m` is based on:
+
+> van Mourik, S., Ter Braak, C., Stigter, H., and Molenaar, J. (2014). Prediction uncertainty assessment of a systems biology model requires a sample of the full probability distribution of its parameters. *PeerJ*, 2, e433. https://doi.org/10.7717/peerj.433
 
 ---
 
