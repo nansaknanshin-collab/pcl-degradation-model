@@ -3,7 +3,7 @@
 # PCL Enzymatic Degradation — Reaction-Diffusion Model
 
 Computational analysis code for the manuscript:  
-**"Reaction-diffusion modelling of enzymatic degradation of semicrystalline PCL films"**
+**"A Reaction-Diffusion Model for Capturing Mass loss and Microstructure Evolution in Enzymatic degradation of Poly(ε-caprolactone) Films"**
 
 ---
 
