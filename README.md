@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/1196934113.svg)](https://doi.org/10.5281/zenodo.19347578)
+
 # PCL Enzymatic Degradation — Reaction-Diffusion Model
 
 Computational analysis code for the manuscript:  
