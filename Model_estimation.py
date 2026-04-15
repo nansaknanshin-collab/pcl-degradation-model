@@ -9,7 +9,7 @@ import os
 # DIMENSIONAL MODEL
 #   x   in mm
 #   t   in hours
-#   De0 in mm^2/h
+#   De0 in mm/h
 #   k*  in 1/h
 #
 # FIXES vs original:
