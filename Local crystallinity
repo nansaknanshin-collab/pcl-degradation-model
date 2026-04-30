@@ -1,0 +1,216 @@
+import numpy as np
+from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
+import os
+
+# =========================================================
+# GLOBAL PLOT STYLE — bold fonts throughout
+# =========================================================
+plt.rcParams.update({
+    'font.weight':         'bold',
+    'axes.labelweight':    'bold',
+    'axes.titleweight':    'bold',
+    'xtick.labelsize':     13,
+    'ytick.labelsize':     13,
+    'xtick.major.width':   1.2,
+    'ytick.major.width':   1.2,
+    'axes.linewidth':      1.2,
+})
+
+LEGEND_PROPS  = {'size': 10, 'weight': 'bold'}
+LEGEND_TITLE  = "Half-thickness"
+
+# NumPy compatibility: trapezoid added in 2.0, trapz removed in 2.0
+np_trapz = getattr(np, 'trapezoid', None) or getattr(np, 'trapz')
+
+# =========================================================
+# KNOWN ESTIMATED PARAMETERS (NO FITTING)
+# =========================================================
+k1     = 0.43
+km1    = 0.98
+k3     = 0.16
+km3    = 0.031
+kconv  = 0.69
+kdegC  = 0.0012
+kdegA  = 0.006
+De0    = 3.16
+
+pars_hat = np.array([k1, km1, k3, km3, kconv, kdegC, kdegA, De0], dtype=float)
+
+# =========================================================
+# FIXED SETTINGS
+# =========================================================
+N_GRID  = 25
+E_BULK  = 0.5
+ALPHA_E = 1.0
+
+C0_POLY = 0.302
+A0_POLY = 0.698
+E_INIT  = 0.0
+P_INIT  = 0.0
+
+time_list_h    = [1, 16, 32, 48]
+thickness_list = [0.1, 0.25, 0.5, 3, 4]
+
+# =========================================================
+# VARIABLE-COEFFICIENT DIFFUSION OPERATOR
+# =========================================================
+def diffusion_dirichlet_neumann_varD(u, D, dx, u_left):
+    N = len(u)
+    u = u.copy()
+    u[0] = u_left
+
+    flux = np.zeros(N + 1, dtype=float)
+    D_iface = 0.5 * (D[:-1] + D[1:])
+    flux[1:N] = D_iface * (u[1:] - u[:-1]) / dx
+    flux[N] = 0.0
+
+    div = np.zeros_like(u)
+    for i in range(1, N - 1):
+        div[i] = (flux[i + 1] - flux[i]) / dx
+
+    div[-1] = 2.0 * (flux[N] - flux[N - 1]) / dx
+    div[0] = 0.0
+    return div
+
+
+# =========================================================
+# PDE RHS
+# =========================================================
+def rhs_pde(t, y, pars, x, dx):
+    k1, km1, k3, km3, kconv, kdegC, kdegA, De0 = pars
+    N = len(x)
+
+    Y = y.reshape(6, N)
+    E, C, A, EC, EA, P = Y
+
+    E = E.copy()
+    E[0] = E_BULK
+
+    denom0 = C0_POLY + A0_POLY
+    phi = 1.0 - (C + A) / max(denom0, 1e-12)
+    phi = np.clip(phi, -0.5, 2.0)
+
+    De = np.maximum(De0 * (1.0 + ALPHA_E * phi), 1e-30)
+    diffE = diffusion_dirichlet_neumann_varD(E, De, dx, E_BULK)
+
+    dE = (
+        diffE
+        - k1 * E * C + km1 * EC
+        - k3 * E * A + km3 * EA
+        + kconv * EC
+        + kdegC * EC + kdegA * EA
+    )
+
+    dC  = -k1 * E * C + km1 * EC
+    dA  = -k3 * E * A + km3 * EA + kconv * EC
+    dEC =  k1 * E * C - km1 * EC - kconv * EC - kdegC * EC
+    dEA =  k3 * E * A - km3 * EA - kdegA * EA
+    dP  =  kdegC * EC + kdegA * EA
+
+    dE[0] = 0.0
+
+    return np.vstack([dE, dC, dA, dEC, dEA, dP]).reshape(-1)
+
+
+# =========================================================
+# INITIAL CONDITION
+# =========================================================
+def build_initial_condition(N):
+    E0  = np.full(N, E_INIT, dtype=float)
+    C0v = np.full(N, C0_POLY, dtype=float)
+    A0v = np.full(N, A0_POLY, dtype=float)
+    EC0 = np.zeros(N, dtype=float)
+    EA0 = np.zeros(N, dtype=float)
+    P0  = np.full(N, P_INIT, dtype=float)
+
+    y0 = np.vstack([E0, C0v, A0v, EC0, EA0, P0])
+    y0[0, 0] = E_BULK
+    return y0.reshape(-1)
+
+
+# =========================================================
+# SOLVE MODEL FOR ONE THICKNESS
+# =========================================================
+def simulate_chi_profile(L_thickness_mm, t_eval_h, pars, n_grid=100):
+    x = np.linspace(0.0, L_thickness_mm, n_grid)
+    dx = x[1] - x[0]
+    y0 = build_initial_condition(n_grid)
+
+    sol = solve_ivp(
+        fun=lambda t, y: rhs_pde(t, y, pars, x, dx),
+        t_span=(0.0, t_eval_h),
+        y0=y0,
+        t_eval=[t_eval_h],
+        method="BDF",
+        rtol=1e-6,
+        atol=1e-9,
+        max_step=0.5
+    )
+
+    if not sol.success:
+        raise RuntimeError(
+            f"Solver failed for L = {L_thickness_mm:.3f} mm at t = {t_eval_h:.1f} h: {sol.message}"
+        )
+
+    Y = sol.y[:, -1].reshape(6, n_grid)
+    E, C, A, EC, EA, P = Y
+
+    polymer_local = C + A
+    chi_x = 100.0 * C / np.maximum(polymer_local, 1e-12)
+    chi_x[polymer_local < 1e-8] = np.nan
+
+    xi = x / L_thickness_mm
+    return x, xi, chi_x, C, A, polymer_local
+
+
+# =========================================================
+# PLOT — 2×2 panels, one per time point
+# =========================================================
+fig, axes = plt.subplots(2, 2, figsize=(12, 9))
+axes = axes.ravel()
+
+panel_labels = ['(a)', '(b)', '(c)', '(d)']
+
+for ax, t_plot_profile_h, panel in zip(axes, time_list_h, panel_labels):
+    for L in thickness_list:
+        x, xi, chi_x, C, A, polymer_local = simulate_chi_profile(
+            L_thickness_mm=L,
+            t_eval_h=t_plot_profile_h,
+            pars=pars_hat,
+            n_grid=N_GRID
+        )
+        ax.plot(xi, chi_x, linewidth=2.5, label=f"{L:.2f} mm")
+
+    ax.set_title(
+        fr"{panel}  $t = {t_plot_profile_h}$ h",
+        fontsize=14, fontweight='bold', loc='left'
+    )
+    ax.set_xlim(0.0, 1.0)
+    ax.set_xticks(np.linspace(0, 1, 6))
+    ax.set_xlabel(
+        r"Dimensionless position, $\xi = x/L$",
+        fontsize=13, fontweight='bold'
+    )
+    ax.set_ylabel(
+        r"Crystallinity, $\chi(\xi,\,t)$ (%)",
+        fontsize=13, fontweight='bold'
+    )
+    ax.grid(True, alpha=0.3)
+    ax.tick_params(axis='both', labelsize=12)
+    ax.legend(
+        title=LEGEND_TITLE,
+        title_fontproperties={'weight': 'bold', 'size': 10},
+        prop=LEGEND_PROPS,
+        framealpha=0.9
+    )
+
+plt.tight_layout()
+
+# Save alongside the script
+save_dir  = os.path.dirname(os.path.abspath(__file__))
+save_path = os.path.join(save_dir, "crystallinity_dimensionless_profiles.png")
+fig.savefig(save_path, dpi=600, bbox_inches="tight")
+plt.show()
+
+print(f"Figure saved to: {save_path}")
