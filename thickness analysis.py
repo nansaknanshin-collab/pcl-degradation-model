@@ -5,6 +5,25 @@ import pandas as pd
 import os
 
 # =========================================================
+# GLOBAL PLOT STYLE — bold fonts throughout
+# =========================================================
+plt.rcParams.update({
+    'font.weight':         'bold',
+    'axes.labelweight':    'bold',
+    'axes.titleweight':    'bold',
+    'xtick.labelsize':     13,
+    'ytick.labelsize':     13,
+    'xtick.major.width':   1.2,
+    'ytick.major.width':   1.2,
+    'axes.linewidth':      1.2,
+})
+
+LEGEND_PROPS = {'size': 10, 'weight': 'bold'}
+
+# NumPy compatibility: trapezoid added in 2.0, trapz removed in 2.0
+np_trapz = getattr(np, 'trapezoid', None) or getattr(np, 'trapz')
+
+# =========================================================
 # THICKNESS VARIATION STUDY
 # Fixed parameters from least-squares calibration to Shi et al.
 # =========================================================
@@ -35,9 +54,11 @@ MODEL_HALF_THICKNESSES = [0.1, 0.25, 0.5, 3.0, 4.0]
 FULL_THICKNESSES = [2 * L for L in MODEL_HALF_THICKNESSES]
 
 LABELS = [
-    rf"Film thickness = {full:.2f} mm" + (" (case study)" if i == 1 else "")
+    rf"{full:.2f} mm" + (" (case study)" if i == 1 else "")
     for i, full in enumerate(FULL_THICKNESSES)
 ]
+
+LEGEND_TITLE = "Film thickness"
 
 COLORS = ["tab:green", "tab:red", "tab:blue", "tab:purple", "tab:orange"]
 
@@ -46,7 +67,7 @@ COLORS = ["tab:green", "tab:red", "tab:blue", "tab:purple", "tab:orange"]
 CAL_IDX = 1
 
 t_plot_h = np.linspace(0.0, 72.0, 600)
-download_dir = os.getcwd()
+download_dir = os.path.dirname(os.path.abspath(__file__))
 
 # =========================================================
 # DIFFUSION OPERATOR
@@ -150,12 +171,12 @@ def simulate(L, pars, times):
     C = Yt[:, 1, :]
     A = Yt[:, 2, :]
 
-    M0 = np.trapz(C[0] + A[0], x) / L
-    M = np.trapz(C + A, x, axis=1) / L
+    M0 = np_trapz(C[0] + A[0], x) / L
+    M = np_trapz(C + A, x, axis=1) / L
     WL_pct = 100.0 * (1.0 - M / max(M0, 1e-12))
 
-    denom = np.trapz(C + A, x, axis=1) / L
-    Cbar = np.trapz(C, x, axis=1) / L
+    denom = np_trapz(C + A, x, axis=1) / L
+    Cbar = np_trapz(C, x, axis=1) / L
     Xc_pct = 100.0 * Cbar / np.maximum(denom, 1e-12)
 
     return WL_pct, Xc_pct
@@ -182,9 +203,9 @@ for i, ((WL, _), label, color) in enumerate(zip(results, LABELS, COLORS)):
     ls = "--" if i == CAL_IDX else "-"
     ax.plot(t_plot_h, WL, color=color, linewidth=3, linestyle=ls, label=label)
 
-ax.set_xlabel("Time (hours)", fontsize=16)
-ax.set_ylabel("Weight loss (%)", fontsize=16)
-ax.legend(fontsize=10, framealpha=0.9)
+ax.set_xlabel("Time (hours)", fontsize=16, fontweight='bold')
+ax.set_ylabel("Weight loss (%)", fontsize=16, fontweight='bold')
+ax.legend(title=LEGEND_TITLE, title_fontproperties={'weight':'bold','size':10}, fontsize=10, framealpha=0.9, prop=LEGEND_PROPS)
 ax.set_xlim([0, 72])
 ax.set_ylim([0, 100])
 ax.grid(True, alpha=0.3)
@@ -192,7 +213,7 @@ ax.grid(True, alpha=0.3)
 plt.tight_layout()
 out1 = os.path.join(download_dir, "thickness_WL.png")
 plt.savefig(out1, dpi=600)
-plt.show()
+plt.close()
 print(f"Saved: {out1}")
 
 # =========================================================
@@ -204,9 +225,9 @@ for i, ((_, Xc), label, color) in enumerate(zip(results, LABELS, COLORS)):
     ls = "--" if i == CAL_IDX else "-"
     ax.plot(t_plot_h, Xc, color=color, linewidth=3, linestyle=ls, label=label)
 
-ax.set_xlabel("Time (hours)", fontsize=16)
-ax.set_ylabel(r"$\chi_c$ (%)", fontsize=16)
-ax.legend(fontsize=10, framealpha=0.9)
+ax.set_xlabel("Time (hours)", fontsize=16, fontweight='bold')
+ax.set_ylabel(r"$\chi_c$ (%)", fontsize=16, fontweight='bold')
+ax.legend(title=LEGEND_TITLE, title_fontproperties={'weight':'bold','size':10}, fontsize=10, framealpha=0.9, prop=LEGEND_PROPS)
 ax.set_xlim([0, 72])
 ax.set_ylim([0, 35])
 ax.grid(True, alpha=0.3)
@@ -214,7 +235,7 @@ ax.grid(True, alpha=0.3)
 plt.tight_layout()
 out2 = os.path.join(download_dir, "thickness_Xc.png")
 plt.savefig(out2, dpi=600)
-plt.show()
+plt.close()
 print(f"Saved: {out2}")
 
 # =========================================================
@@ -222,7 +243,7 @@ print(f"Saved: {out2}")
 # =========================================================
 non_cal_indices = [i for i in range(len(MODEL_HALF_THICKNESSES)) if i != CAL_IDX]
 
-fig, axes = plt.subplots(2, 2, figsize=(9, 9), sharey=True)
+fig, axes = plt.subplots(2, 2, figsize=(9, 9))
 axes = axes.flatten()
 
 WL_cal, Xc_cal = results[CAL_IDX]
@@ -241,23 +262,23 @@ for ax, idx in zip(axes, non_cal_indices):
         label=LABELS[idx]
     )
 
-    ax.set_xlabel("Time (hours)", fontsize=16)
-    ax.set_ylabel("Weight loss (%)", fontsize=16)
+    ax.set_xlabel("Time (hours)", fontsize=16, fontweight='bold')
+    ax.set_ylabel("Weight loss (%)", fontsize=16, fontweight='bold')
     ax.set_xlim([0, 72])
     ax.set_ylim([0, 100])
-    ax.legend(fontsize=9, framealpha=0.9)
+    ax.legend(title=LEGEND_TITLE, title_fontproperties={'weight':'bold','size':10}, fontsize=9, framealpha=0.9, prop=LEGEND_PROPS)
     ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
 out3 = os.path.join(download_dir, "comparison_WL.png")
 plt.savefig(out3, dpi=600, bbox_inches="tight")
-plt.show()
+plt.close()
 print(f"Saved: {out3}")
 
 # =========================================================
 # PLOT 4: EACH THICKNESS vs CALIBRATION — CRYSTALLINITY
 # =========================================================
-fig, axes = plt.subplots(2, 2, figsize=(9, 9), sharey=True)
+fig, axes = plt.subplots(2, 2, figsize=(9, 9))
 axes = axes.flatten()
 
 for ax, idx in zip(axes, non_cal_indices):
@@ -274,17 +295,17 @@ for ax, idx in zip(axes, non_cal_indices):
         label=LABELS[idx]
     )
 
-    ax.set_xlabel("Time (hours)", fontsize=16)
-    ax.set_ylabel(r"$\chi_c$ (%)", fontsize=16)
+    ax.set_xlabel("Time (hours)", fontsize=16, fontweight='bold')
+    ax.set_ylabel(r"$\chi_c$ (%)", fontsize=16, fontweight='bold')
     ax.set_xlim([0, 72])
     ax.set_ylim([0, 35])
-    ax.legend(fontsize=9, framealpha=0.9)
+    ax.legend(title=LEGEND_TITLE, title_fontproperties={'weight':'bold','size':10}, fontsize=9, framealpha=0.9, prop=LEGEND_PROPS)
     ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
 out4 = os.path.join(download_dir, "comparison_Xc.png")
 plt.savefig(out4, dpi=600, bbox_inches="tight")
-plt.show()
+plt.close()
 print(f"Saved: {out4}")
 
 # =========================================================
