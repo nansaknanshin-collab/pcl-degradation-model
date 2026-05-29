@@ -3,7 +3,7 @@
 # PCL Enzymatic Degradation — Reaction-Diffusion Model
 
 Computational analysis code for the article:  
-**"Nansak, N., Creedon, L., O’Mahoney, D., Ghosh, R., & McAfee, M. (2026). A Reaction–Diffusion Model for Capturing Mass Loss and Microstructure Evolution in Enzymatic Degradation of Poly (ε-Caprolactone) Films. Polymers.
+**"Nansak, N., Creedon, L., O’Mahoney, D., Ghosh, R., & McAfee, M. (2026). A Reaction–Diffusion Model for Capturing Mass Loss and Microstructure Evolution in Enzymatic Degradation of Poly (ε-Caprolactone) Films.
 https://doi.org/10.3390/polym18101248"**
 
 ---
