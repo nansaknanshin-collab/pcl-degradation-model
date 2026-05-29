@@ -1,15 +1,10 @@
 [![DOI](https://zenodo.org/badge/1196934113.svg)](https://doi.org/10.5281/zenodo.19347578)
-@article{nansak2026reaction,
-  title={A Reaction--Diffusion Model for Capturing Mass Loss and Microstructure Evolution in Enzymatic Degradation of Poly ($\varepsilon$-Caprolactone) Films},
-  author={Nansak, Nanshin and Creedon, Leo and O’Mahoney, Denis and Ghosh, Ramen and McAfee, Marion},
-  journal={Polymers},
-  year={2026},
-  publisher={Multidisciplinary Digital Publishing Institute}
-}
+
 # PCL Enzymatic Degradation — Reaction-Diffusion Model
 
 Computational analysis code for the manuscript:  
-**"A Reaction-Diffusion Model for Capturing Mass loss and Microstructure Evolution in Enzymatic degradation of Poly(ε-caprolactone) Films"**
+**"Nansak, N., Creedon, L., O’Mahoney, D., Ghosh, R., & McAfee, M. (2026). A Reaction–Diffusion Model for Capturing Mass Loss and Microstructure Evolution in Enzymatic Degradation of Poly (ε-Caprolactone) Films. Polymers.
+https://doi.org/10.3390/polym18101248"**
 
 ---
 
